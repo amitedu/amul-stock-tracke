@@ -3,7 +3,7 @@ name: Amul Stock Tracker
 on:
   schedule:
     # Run every 2 minutes (adjust as needed)
-    - cron: '*/2 * * * *'
+    - cron: '*/5 * * * *'
 
   # Allow manual triggering for testing
   workflow_dispatch:
@@ -53,10 +53,12 @@ jobs:
             data/tracker.log
           retention-days: 3
 
-      - name: Commit and push changes (optional)
-        continue-on-error: true
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add data/
-          git diff --staged --quiet || (git commit -m "Update stock data $(date)" && git push)
+    # - name: Commit and push changes (optional - disabled)
+    #   continue-on-error: true
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   run: |
+    #     git config --local user.email "action@github.com"
+    #     git config --local user.name "GitHub Action"
+    #     git add data/
+    #     git diff --staged --quiet || (git commit -m "Update stock data $(date)" && git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git)
