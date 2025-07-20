@@ -1,7 +1,8 @@
 <?php
 /**
- * Amul Product Stock Tracker - GitHub Actions Version
+ * Amul Product Stock Tracker
  * Monitors stock status and sends Telegram notifications on restocking
+ * Enhanced with log rotation and management
  */
 
 class AmulStockTracker {
@@ -9,22 +10,23 @@ class AmulStockTracker {
     private $dataFile = 'stock_data.json';
     private $logFile = 'tracker.log';
 
-    // Telegram Bot Configuration - Using environment variables
-    private $telegramBotToken;
-    private $telegramChatId;
+    // Log management settings
+    private $maxLogSizeMB = 2;        // Maximum log file size in MB
+    private $maxLogFiles = 5;          // Number of rotated log files to keep
+    private $logRetentionDays = 2;    // Days to keep logs
+
+    // Telegram Bot Configuration
+    private $telegramBotToken = '7784897142:AAEdmidcV7MJyX7SrVlv3-n2pOGEx5oaWK0'; // Replace it with your bot token
+    private $telegramChatId = '6670557811';     // Replace it with your chat ID
 
     public function __construct() {
-        // Get credentials from environment variables (GitHub Secrets)
-        $this->telegramBotToken = getenv('TELEGRAM_BOT_TOKEN') ?: '';
-        $this->telegramChatId = getenv('TELEGRAM_CHAT_ID') ?: '';
-
         // Ensure data file exists
         if (!file_exists($this->dataFile)) {
             file_put_contents($this->dataFile, json_encode([]));
         }
 
-        // GitHub Actions doesn't need complex log rotation. 
-        // We'll keep it simple since artifacts are managed automatically
+        // Manage log files on startup
+        $this->manageLogFiles();
     }
 
     /**
@@ -32,7 +34,6 @@ class AmulStockTracker {
      */
     public function run() {
         $this->log("Starting stock check...");
-        $this->log("Running in GitHub Actions environment");
 
         try {
             // Fetch current stock data
@@ -61,8 +62,80 @@ class AmulStockTracker {
 
         } catch (Exception $e) {
             $this->log("Error: " . $e->getMessage());
-            // In GitHub Actions, exit with error code to mark workflow as failed
-            exit(1);
+        }
+    }
+
+    /**
+     * Manage log files - rotate if too large, clean up old files
+     */
+    private function manageLogFiles() {
+        // Check if the current log file is too large
+        if (file_exists($this->logFile)) {
+            $logSizeMB = filesize($this->logFile) / (1024 * 1024);
+
+            if ($logSizeMB > $this->maxLogSizeMB) {
+                $this->rotateLogFile();
+            }
+        }
+
+        // Clean up old log files
+        $this->cleanOldLogFiles();
+    }
+
+    /**
+     * Rotate a log file when it gets too large
+     */
+    private function rotateLogFile() {
+        $timestamp = date('Y-m-d_H-i-s');
+        $rotatedFile = str_replace('.log', "_$timestamp.log", $this->logFile);
+
+        // Move the current log to a rotated file
+        if (rename($this->logFile, $rotatedFile)) {
+            // Compress the rotated file to save space (optional)
+            if (function_exists('gzencode')) {
+                $content = file_get_contents($rotatedFile);
+                $compressed = gzencode($content);
+                file_put_contents($rotatedFile . '.gz', $compressed);
+                unlink($rotatedFile); // Remove uncompressed version
+            }
+
+            echo "Log file rotated to: " . ($rotatedFile . (function_exists('gzencode') ? '.gz' : '')) . "\n";
+        }
+    }
+
+    /**
+     * Clean up old log files based on retention policy
+     */
+    private function cleanOldLogFiles() {
+        $logDir = dirname($this->logFile);
+        $logBaseName = pathinfo($this->logFile, PATHINFO_FILENAME);
+
+        // Get all log files
+        $logFiles = glob($logDir . '/' . $logBaseName . '_*.log*');
+
+        // Sort by modification time (oldest first)
+        usort($logFiles, function($a, $b) {
+            return filemtime($a) - filemtime($b);
+        });
+
+        // Remove files older than a retention period
+        $cutoffTime = time() - ($this->logRetentionDays * 24 * 60 * 60);
+        foreach ($logFiles as $file) {
+            if (filemtime($file) < $cutoffTime) {
+                unlink($file);
+                echo "Deleted old log file: " . basename($file) . "\n";
+            }
+        }
+
+        // Keep only the specified number of most recent files
+        if (count($logFiles) > $this->maxLogFiles) {
+            $filesToDelete = array_slice($logFiles, 0, count($logFiles) - $this->maxLogFiles);
+            foreach ($filesToDelete as $file) {
+                if (file_exists($file)) {
+                    unlink($file);
+                    echo "Deleted excess log file: " . basename($file) . "\n";
+                }
+            }
         }
     }
 
@@ -75,7 +148,7 @@ class AmulStockTracker {
         $context = stream_context_create([
             'http' => [
                 'timeout' => 30,
-                'user_agent' => 'Mozilla/5.0 (Linux; GitHub Actions) Stock Tracker/1.0'
+                'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             ]
         ]);
 
@@ -183,14 +256,9 @@ class AmulStockTracker {
         }
 
         foreach ($restockedItems as $item) {
-            $message = "🔔 RESTOCK ALERT 🔔\n\n";
-            $message .= $item['name'] . "\n";
-            $message .= "Units Available: " . ($item['inventory_quantity'] - $item['inventory_low_stock_quantity']) . "\n";
-            $message .= "Price: " . $item['price'] . "\n";
-            $message .= "URL: " . $item['url'] . "\n";
-            $message .= "\n⏰ " . date('Y-m-d H:i:s T');
+            $message = $item['name']." || Unit: ".($item['inventory_quantity'] - $item['inventory_low_stock_quantity']) . " || Price: " . $item['price'] . " || URL: ".$item['url'];
 
-            $this->log("Sending notification: " . $item['name']);
+            $this->log($message);
             $this->sendTelegramMessage($message);
         }
     }
@@ -204,7 +272,7 @@ class AmulStockTracker {
         $data = [
             'chat_id' => $this->telegramChatId,
             'text' => $message,
-            'parse_mode' => 'HTML',
+            'parse_mode' => 'Markdown',
             'disable_web_page_preview' => true
         ];
 
@@ -232,14 +300,22 @@ class AmulStockTracker {
     }
 
     /**
-     * Log messages with timestamp
+     * Log messages with timestamp and manage log rotation
      */
     private function log($message) {
         $timestamp = date('Y-m-d H:i:s');
         $logMessage = "[$timestamp] $message\n";
 
-        echo $logMessage; // For GitHub Actions console output
-        file_put_contents($this->logFile, $logMessage, FILE_APPEND | LOCK_EX);
+        echo $logMessage; // For console output
+        file_put_contents($this->logFile, $logMessage, FILE_APPEND | LOCK_EX); // For file logging with locking
+
+        // Check if a log file needs rotation after each writing
+        if (file_exists($this->logFile)) {
+            $logSizeMB = filesize($this->logFile) / (1024 * 1024);
+            if ($logSizeMB > $this->maxLogSizeMB) {
+                $this->rotateLogFile();
+            }
+        }
     }
 
     /**
@@ -257,7 +333,7 @@ class AmulStockTracker {
         foreach ($stockData as $sku => $item) {
             $status = $item['status'] === 'in_stock' ? '✅ IN STOCK' : '❌ OUT OF STOCK';
             echo sprintf("%-50s | %s | Qty: %d/%d\n",
-                substr($item['name'], 0, 47).(strlen($item['name']) > 47 ? '...' : ''),
+                substr($item['name'], 0, 47) . (strlen($item['name']) > 47 ? '...' : ''),
                 $status,
                 $item['inventory_quantity'],
                 $item['inventory_low_stock_quantity']
@@ -265,15 +341,66 @@ class AmulStockTracker {
         }
         echo "\nLast checked: " . ($stockData[array_keys($stockData)[0]]['last_checked'] ?? 'Never') . "\n";
     }
+
+    /**
+     * Manually clean logs (useful for maintenance)
+     */
+    public function cleanLogs() {
+        $this->cleanOldLogFiles();
+        echo "Log cleanup completed.\n";
+    }
+
+    /**
+     * Get log management statistics
+     */
+    public function getLogStats() {
+        $logDir = dirname($this->logFile);
+        $logBaseName = pathinfo($this->logFile, PATHINFO_FILENAME);
+        $logFiles = glob($logDir . '/' . $logBaseName . '_*.log*');
+
+        echo "\n=== LOG FILE STATISTICS ===\n";
+        echo "Current log file: " . $this->logFile . "\n";
+
+        if (file_exists($this->logFile)) {
+            $currentSize = filesize($this->logFile) / (1024 * 1024);
+            echo "Current log size: " . round($currentSize, 2) . " MB\n";
+        }
+
+        echo "Rotated log files: " . count($logFiles) . "\n";
+        echo "Max log size: " . $this->maxLogSizeMB . " MB\n";
+        echo "Max log files: " . $this->maxLogFiles . "\n";
+        echo "Retention days: " . $this->logRetentionDays . "\n";
+
+        $totalSize = 0;
+        foreach ($logFiles as $file) {
+            $totalSize += filesize($file);
+        }
+        if (file_exists($this->logFile)) {
+            $totalSize += filesize($this->logFile);
+        }
+
+        echo "Total log storage: " . round($totalSize / (1024 * 1024), 2) . " MB\n";
+    }
 }
 
-// For GitHub Actions, we always run the tracker
+// Command line interface
 $tracker = new AmulStockTracker();
-
-if (isset($argv[1]) && $argv[1] === 'status') {
-    $tracker->getStockStatus();
+if ((PHP_SAPI === 'cli') && isset($argv[1])) {
+    switch ($argv[1]) {
+        case 'status':
+            $tracker->getStockStatus();
+            break;
+        case 'clean-logs':
+            $tracker->cleanLogs();
+            break;
+        case 'log-stats':
+            $tracker->getLogStats();
+            break;
+        default:
+            $tracker->run();
+    }
 } else {
+    // Web interface
     $tracker->run();
 }
 
-?>

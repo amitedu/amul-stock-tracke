@@ -1,0 +1,62 @@
+name: Amul Stock Tracker
+
+on:
+  schedule:
+    # Run every 2 minutes (adjust as needed)
+    - cron: '*/2 * * * *'
+
+  # Allow manual triggering for testing
+  workflow_dispatch:
+
+jobs:
+  track-stock:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: json, curl
+
+      - name: Create data directory
+        run: mkdir -p data
+
+      - name: Download previous stock data
+        continue-on-error: true
+        run: |
+          # Try to download existing stock data from artifacts
+          if [ -f data/stock_data.json ]; then
+            echo "Stock data exists"
+          else
+            echo "No previous stock data found"
+          fi
+
+      - name: Run stock tracker
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          cd data
+          php ../tracker.php
+
+      - name: Upload stock data as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stock-data
+          path: |
+            data/stock_data.json
+            data/tracker.log
+          retention-days: 3
+
+      - name: Commit and push changes (optional)
+        continue-on-error: true
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data/
+          git diff --staged --quiet || (git commit -m "Update stock data $(date)" && git push)
