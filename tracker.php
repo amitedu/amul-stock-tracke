@@ -236,8 +236,8 @@ class AmulStockTracker
         foreach ($restockedItems as $item) {
             $message = "🔔 RESTOCK ALERT 🔔\n\n";
             $message .= $item['name']."\n\n";
-            $message .= "Units Available: ".($item['inventory_quantity'] - $item['inventory_low_stock_quantity'])."\n";
-            $message .= "Price: ".$item['price']."\n";
+            $message .= "*Units Available:* ".($item['inventory_quantity'] - $item['inventory_low_stock_quantity'])."\n";
+            $message .= "*Price:* ".$item['price']."\n\n";
             $message .= "URL: ".$item['url']."\n";
             $message .= "\n⏰ ".date('Y-m-d H:i:s T');
 
