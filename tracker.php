@@ -4,7 +4,8 @@
  * Monitors stock status and sends Telegram notifications on restocking
  */
 
-class AmulStockTracker {
+class AmulStockTracker
+{
     private $apiUrl = 'https://shop.amul.com/api/1/entity/ms.products?fields[name]=1&fields[brand]=1&fields[categories]=1&fields[collections]=1&fields[alias]=1&fields[sku]=1&fields[price]=1&fields[compare_price]=1&fields[original_price]=1&fields[images]=1&fields[metafields]=1&fields[discounts]=1&fields[catalog_only]=1&fields[is_catalog]=1&fields[seller]=1&fields[available]=1&fields[inventory_quantity]=1&fields[net_quantity]=1&fields[num_reviews]=1&fields[avg_rating]=1&fields[inventory_low_stock_quantity]=1&fields[inventory_allow_out_of_stock]=1&fields[default_variant]=1&fields[variants]=1&fields[lp_seller_ids]=1&filters[0][field]=categories&filters[0][value][0]=protein&filters[0][operator]=in&filters[0][original]=1&facets=true&facetgroup=default_category_facet&limit=32&total=1&start=0&cdc=1m&substore=6650600024e61363e088c526';
     private $dataFile = 'stock_data.json';
     private $logFile = 'tracker.log';
@@ -13,7 +14,8 @@ class AmulStockTracker {
     private $telegramBotToken;
     private $telegramChatId;
 
-    public function __construct() {
+    public function __construct()
+    {
         // Get credentials from environment variables (GitHub Secrets)
         $this->telegramBotToken = getenv('TELEGRAM_BOT_TOKEN') ?: '';
         $this->telegramChatId = getenv('TELEGRAM_CHAT_ID') ?: '';
@@ -21,9 +23,9 @@ class AmulStockTracker {
         // Ensure data file exists
         if (!file_exists($this->dataFile)) {
             file_put_contents($this->dataFile, json_encode([]));
-            $this->log($this->dataFile . ' created (empty)');
+            $this->log($this->dataFile.' created (empty)');
         } else {
-            $this->log($this->dataFile . ' exists, will be loaded');
+            $this->log($this->dataFile.' exists, will be loaded');
         }
 
         // GitHub Actions doesn't need complex log rotation. 
@@ -31,9 +33,22 @@ class AmulStockTracker {
     }
 
     /**
+     * Log messages with timestamp
+     */
+    private function log($message)
+    {
+        $timestamp = date('Y-m-d H:i:s');
+        $logMessage = "[$timestamp] $message\n";
+
+        echo $logMessage; // For GitHub Actions console output
+        file_put_contents($this->logFile, $logMessage, FILE_APPEND | LOCK_EX);
+    }
+
+    /**
      * Main execution method
      */
-    public function run() {
+    public function run()
+    {
         $this->log("Starting stock check...");
         $this->log("Running in GitHub Actions environment");
 
@@ -63,24 +78,38 @@ class AmulStockTracker {
             // Save current stock data
             $this->savePreviousStock($currentStock);
 
-            $this->log("Stock check completed. Found " . count($restockedItems) . " restocked items." . "\n");
-
-            // Test notification
-            if (!empty($this->telegramBotToken) && !empty($this->telegramChatId)) {
-                $this->sendTelegramMessage("Test notification from stock tracker at " . date('Y-m-d H:i:s'));
-            }
-
+            $this->log("Stock check completed. Found ".count($restockedItems)." restocked items."."\n");
         } catch (Exception $e) {
-            $this->log("Error: " . $e->getMessage());
+            $this->log("Error: ".$e->getMessage());
             // In GitHub Actions, exit with error code to mark workflow as failed
             exit(1);
         }
     }
 
+    private function verifyTelegramSetup()
+    {
+        $this->log("Verifying Telegram setup...");
+
+        if (empty($this->telegramBotToken)) {
+            $this->log("ERROR: TELEGRAM_BOT_TOKEN environment variable is empty or not set");
+            return false;
+        }
+
+        if (empty($this->telegramChatId)) {
+            $this->log("ERROR: TELEGRAM_CHAT_ID environment variable is empty or not set");
+            return false;
+        }
+
+        $this->log("Telegram Bot Token: ".substr($this->telegramBotToken, 0, 10)."...");
+        $this->log("Telegram Chat ID: ".$this->telegramChatId);
+        return true;
+    }
+
     /**
      * Fetch stock data from Amul API
      */
-    private function fetchStockData() {
+    private function fetchStockData()
+    {
         $this->log("Fetching data from API...");
 
         $context = stream_context_create([
@@ -110,10 +139,10 @@ class AmulStockTracker {
             }
 
             $sku = $item['sku'];
-            $inventoryQty = (int)$item['inventory_quantity'];
-            $lowStockQty = (int)$item['inventory_low_stock_quantity'];
+            $inventoryQty = (int) $item['inventory_quantity'];
+            $lowStockQty = (int) $item['inventory_low_stock_quantity'];
             $productName = $item['name'] ?? 'Unknown Product';
-            $productUrl = "https://shop.amul.com/en/product/" . $item['alias'];
+            $productUrl = "https://shop.amul.com/en/product/".$item['alias'];
             $productPrice = $item['price'] ?? 'NA';
 
             $isInStock = $inventoryQty > $lowStockQty;
@@ -129,14 +158,15 @@ class AmulStockTracker {
             ];
         }
 
-        $this->log("Fetched " . count($stockData) . " products");
+        $this->log("Fetched ".count($stockData)." products");
         return $stockData;
     }
 
     /**
      * Load previous stock data
      */
-    private function loadPreviousStock() {
+    private function loadPreviousStock()
+    {
         if (!file_exists($this->dataFile)) {
             return [];
         }
@@ -146,19 +176,13 @@ class AmulStockTracker {
     }
 
     /**
-     * Save current stock data
-     */
-    private function savePreviousStock($stockData) {
-        file_put_contents($this->dataFile, json_encode($stockData, JSON_PRETTY_PRINT));
-    }
-
-    /**
      * Check for products that have been restocked
      */
-    private function checkForRestocks($currentStock, $previousStock) {
+    private function checkForRestocks($currentStock, $previousStock)
+    {
         $this->log('Starting checkForRestocks...');
-        $this->log('Current stock items: ' . count($currentStock));
-        $this->log('Previous stock items: ' . count($previousStock));
+        $this->log('Current stock items: '.count($currentStock));
+        $this->log('Previous stock items: '.count($previousStock));
 
         $restockedItems = [];
         $checkedItems = 0;
@@ -168,14 +192,14 @@ class AmulStockTracker {
             // Skip if product wasn't tracked before
             if (!isset($previousStock[$sku])) {
                 $skippedItems++;
-                $this->log("SKIPPED (new product): " . $currentItem['name'] . " (SKU: $sku)");
+                $this->log("SKIPPED (new product): ".$currentItem['name']." (SKU: $sku)");
                 continue;
             }
 
             $checkedItems++;
             $previousItem = $previousStock[$sku];
 
-            $this->log("CHECKING: " . $currentItem['name'] . " | Previous: " . $previousItem['status'] . " | Current: " . $currentItem['status']);
+            $this->log("CHECKING: ".$currentItem['name']." | Previous: ".$previousItem['status']." | Current: ".$currentItem['status']);
 
             // Check if status changed from out_of_stock to in_stock
             if ($previousItem['status'] === 'out_of_stock' && $currentItem['status'] === 'in_stock') {
@@ -187,53 +211,37 @@ class AmulStockTracker {
                     'inventory_quantity' => $currentItem['inventory_quantity'],
                     'inventory_low_stock_quantity' => $currentItem['inventory_low_stock_quantity']
                 ];
-                $this->log("🎉 RESTOCK DETECTED: " . $currentItem['name'] . " (SKU: $sku)");
+                $this->log("🎉 RESTOCK DETECTED: ".$currentItem['name']." (SKU: $sku)");
             }
         }
 
-        $this->log("Restock check summary - Checked: $checkedItems, Skipped: $skippedItems, Restocked: " . count($restockedItems));
+        $this->log("Restock check summary - Checked: $checkedItems, Skipped: $skippedItems, Restocked: ".count($restockedItems));
         return $restockedItems;
     }
-
-    private function verifyTelegramSetup() {
-        $this->log("Verifying Telegram setup...");
-
-        if (empty($this->telegramBotToken)) {
-            $this->log("ERROR: TELEGRAM_BOT_TOKEN environment variable is empty or not set");
-            return false;
-        }
-
-        if (empty($this->telegramChatId)) {
-            $this->log("ERROR: TELEGRAM_CHAT_ID environment variable is empty or not set");
-            return false;
-        }
-
-        $this->log("Telegram Bot Token: " . substr($this->telegramBotToken, 0, 10) . "...");
-        $this->log("Telegram Chat ID: " . $this->telegramChatId);
-        return true;
-    }
-
 
     /**
      * Send Telegram notifications for restocked items
      */
-    private function sendNotifications($restockedItems) {
-        $this->log("Attempting to send notifications for " . count($restockedItems) . " items...");
+    private function sendNotifications($restockedItems)
+    {
+        $this->log("Attempting to send notifications for ".count($restockedItems)." items...");
 
         if (empty($this->telegramBotToken) || empty($this->telegramChatId)) {
             $this->log("Telegram credentials not configured. Skipping notifications.");
             return;
         }
 
+        date_default_timezone_set('Asia/Kolkata');
+
         foreach ($restockedItems as $item) {
             $message = "🔔 RESTOCK ALERT 🔔\n\n";
-            $message .= $item['name'] . "\n";
-            $message .= "Units Available: " . ($item['inventory_quantity'] - $item['inventory_low_stock_quantity']) . "\n";
-            $message .= "Price: " . $item['price'] . "\n";
-            $message .= "URL: " . $item['url'] . "\n";
-            $message .= "\n⏰ " . date('Y-m-d H:i:s T');
+            $message .= $item['name']."\n\n";
+            $message .= "Units Available: ".($item['inventory_quantity'] - $item['inventory_low_stock_quantity'])."\n";
+            $message .= "Price: ".$item['price']."\n";
+            $message .= "URL: ".$item['url']."\n";
+            $message .= "\n⏰ ".date('Y-m-d H:i:s T');
 
-            $this->log("Sending notification: " . $item['name']);
+            $this->log("Sending notification: ".$item['name']);
             $this->sendTelegramMessage($message);
         }
     }
@@ -241,7 +249,8 @@ class AmulStockTracker {
     /**
      * Send message via Telegram Bot API
      */
-    public function sendTelegramMessage($message) {
+    public function sendTelegramMessage($message)
+    {
         $url = "https://api.telegram.org/bot{$this->telegramBotToken}/sendMessage";
 
         $data = [
@@ -269,26 +278,24 @@ class AmulStockTracker {
             if ($response['ok']) {
                 $this->log("Telegram notification sent successfully");
             } else {
-                $this->log("Telegram API error: " . ($response['description'] ?? 'Unknown error'));
+                $this->log("Telegram API error: ".($response['description'] ?? 'Unknown error'));
             }
         }
     }
 
     /**
-     * Log messages with timestamp
+     * Save current stock data
      */
-    private function log($message) {
-        $timestamp = date('Y-m-d H:i:s');
-        $logMessage = "[$timestamp] $message\n";
-
-        echo $logMessage; // For GitHub Actions console output
-        file_put_contents($this->logFile, $logMessage, FILE_APPEND | LOCK_EX);
+    private function savePreviousStock($stockData)
+    {
+        file_put_contents($this->dataFile, json_encode($stockData, JSON_PRETTY_PRINT));
     }
 
     /**
      * Get current stock status (for testing/debugging)
      */
-    public function getStockStatus() {
+    public function getStockStatus()
+    {
         $stockData = $this->loadPreviousStock();
 
         if (empty($stockData)) {
@@ -306,7 +313,7 @@ class AmulStockTracker {
                 $item['inventory_low_stock_quantity']
             );
         }
-        echo "\nLast checked: " . ($stockData[array_keys($stockData)[0]]['last_checked'] ?? 'Never') . "\n";
+        echo "\nLast checked: ".($stockData[array_keys($stockData)[0]]['last_checked'] ?? 'Never')."\n";
     }
 }
 
