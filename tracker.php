@@ -21,6 +21,8 @@ class AmulStockTracker {
         // Ensure data file exists
         if (!file_exists($this->dataFile)) {
             file_put_contents($this->dataFile, json_encode([]));
+        } else {
+            $this->log($this->dataFile . 'file does not exist');
         }
 
         // GitHub Actions doesn't need complex log rotation. 
@@ -145,6 +147,7 @@ class AmulStockTracker {
      * Check for products that have been restocked
      */
     private function checkForRestocks($currentStock, $previousStock) {
+        $this->log('In the checkForRestocks');
         $restockedItems = [];
 
         foreach ($currentStock as $sku => $currentItem) {
@@ -154,6 +157,8 @@ class AmulStockTracker {
             }
 
             $previousItem = $previousStock[$sku];
+
+            $this->log('Starting checkForRestocks...');
 
             // Check if status changed from out_of_stock to in_stock
             if ($previousItem['status'] === 'out_of_stock' && $currentItem['status'] === 'in_stock') {
