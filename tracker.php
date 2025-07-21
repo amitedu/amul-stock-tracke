@@ -53,7 +53,7 @@ class AmulStockTracker
         $this->log("Running in GitHub Actions environment");
 
         // Verify Telegram setup
-        $this->verifyTelegramSetup();
+        // $this->verifyTelegramSetup();
 
         try {
             // Fetch current stock data
@@ -86,24 +86,24 @@ class AmulStockTracker
         }
     }
 
-    private function verifyTelegramSetup()
-    {
-        $this->log("Verifying Telegram setup...");
-
-        if (empty($this->telegramBotToken)) {
-            $this->log("ERROR: TELEGRAM_BOT_TOKEN environment variable is empty or not set");
-            return false;
-        }
-
-        if (empty($this->telegramChatId)) {
-            $this->log("ERROR: TELEGRAM_CHAT_ID environment variable is empty or not set");
-            return false;
-        }
-
-        $this->log("Telegram Bot Token: ".substr($this->telegramBotToken, 0, 10)."...");
-        $this->log("Telegram Chat ID: ".$this->telegramChatId);
-        return true;
-    }
+    // private function verifyTelegramSetup()
+    // {
+    //     $this->log("Verifying Telegram setup...");
+    //
+    //     if (empty($this->telegramBotToken)) {
+    //         $this->log("ERROR: TELEGRAM_BOT_TOKEN environment variable is empty or not set");
+    //         return false;
+    //     }
+    //
+    //     if (empty($this->telegramChatId)) {
+    //         $this->log("ERROR: TELEGRAM_CHAT_ID environment variable is empty or not set");
+    //         return false;
+    //     }
+    //
+    //     $this->log("Telegram Bot Token: ".substr($this->telegramBotToken, 0, 10)."...");
+    //     $this->log("Telegram Chat ID: ".$this->telegramChatId);
+    //     return true;
+    // }
 
     /**
      * Fetch stock data from Amul API
@@ -180,7 +180,6 @@ class AmulStockTracker
      */
     private function checkForRestocks($currentStock, $previousStock)
     {
-        $this->log('Starting checkForRestocks...');
         $this->log('Current stock items: '.count($currentStock));
         $this->log('Previous stock items: '.count($previousStock));
 
