@@ -36,6 +36,9 @@ class AmulStockTracker {
         $this->log("Starting stock check...");
         $this->log("Running in GitHub Actions environment");
 
+        // Verify Telegram setup
+        $this->verifyTelegramSetup();
+
         try {
             // Fetch current stock data
             $currentStock = $this->fetchStockData();
@@ -60,6 +63,11 @@ class AmulStockTracker {
             $this->savePreviousStock($currentStock);
 
             $this->log("Stock check completed. Found " . count($restockedItems) . " restocked items." . "\n");
+
+            // Test notification
+            if (!empty($this->telegramBotToken) && !empty($this->telegramChatId)) {
+                $this->sendTelegramMessage("Test notification from stock tracker at " . date('Y-m-d H:i:s'));
+            }
 
         } catch (Exception $e) {
             $this->log("Error: " . $e->getMessage());
@@ -147,18 +155,26 @@ class AmulStockTracker {
      * Check for products that have been restocked
      */
     private function checkForRestocks($currentStock, $previousStock) {
-        $this->log('In the checkForRestocks');
+        $this->log('Starting checkForRestocks...');
+        $this->log('Current stock items: ' . count($currentStock));
+        $this->log('Previous stock items: ' . count($previousStock));
+
         $restockedItems = [];
+        $checkedItems = 0;
+        $skippedItems = 0;
 
         foreach ($currentStock as $sku => $currentItem) {
             // Skip if product wasn't tracked before
             if (!isset($previousStock[$sku])) {
+                $skippedItems++;
+                $this->log("SKIPPED (new product): " . $currentItem['name'] . " (SKU: $sku)");
                 continue;
             }
 
+            $checkedItems++;
             $previousItem = $previousStock[$sku];
 
-            $this->log('Starting checkForRestocks...');
+            $this->log("CHECKING: " . $currentItem['name'] . " | Previous: " . $previousItem['status'] . " | Current: " . $currentItem['status']);
 
             // Check if status changed from out_of_stock to in_stock
             if ($previousItem['status'] === 'out_of_stock' && $currentItem['status'] === 'in_stock') {
@@ -170,18 +186,39 @@ class AmulStockTracker {
                     'inventory_quantity' => $currentItem['inventory_quantity'],
                     'inventory_low_stock_quantity' => $currentItem['inventory_low_stock_quantity']
                 ];
-
-                $this->log("RESTOCK DETECTED: " . $currentItem['name'] . " (SKU: $sku)");
+                $this->log("🎉 RESTOCK DETECTED: " . $currentItem['name'] . " (SKU: $sku)");
             }
         }
 
+        $this->log("Restock check summary - Checked: $checkedItems, Skipped: $skippedItems, Restocked: " . count($restockedItems));
         return $restockedItems;
     }
+
+    private function verifyTelegramSetup() {
+        $this->log("Verifying Telegram setup...");
+
+        if (empty($this->telegramBotToken)) {
+            $this->log("ERROR: TELEGRAM_BOT_TOKEN environment variable is empty or not set");
+            return false;
+        }
+
+        if (empty($this->telegramChatId)) {
+            $this->log("ERROR: TELEGRAM_CHAT_ID environment variable is empty or not set");
+            return false;
+        }
+
+        $this->log("Telegram Bot Token: " . substr($this->telegramBotToken, 0, 10) . "...");
+        $this->log("Telegram Chat ID: " . $this->telegramChatId);
+        return true;
+    }
+
 
     /**
      * Send Telegram notifications for restocked items
      */
     private function sendNotifications($restockedItems) {
+        $this->log("Attempting to send notifications for " . count($restockedItems) . " items...");
+
         if (empty($this->telegramBotToken) || empty($this->telegramChatId)) {
             $this->log("Telegram credentials not configured. Skipping notifications.");
             return;
