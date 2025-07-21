@@ -21,8 +21,9 @@ class AmulStockTracker {
         // Ensure data file exists
         if (!file_exists($this->dataFile)) {
             file_put_contents($this->dataFile, json_encode([]));
+            $this->log($this->dataFile . ' created (empty)');
         } else {
-            $this->log($this->dataFile . 'file does not exist');
+            $this->log($this->dataFile . ' exists, will be loaded');
         }
 
         // GitHub Actions doesn't need complex log rotation. 
