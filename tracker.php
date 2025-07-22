@@ -180,8 +180,8 @@ class AmulStockTracker
      */
     private function checkForRestocks($currentStock, $previousStock)
     {
-        $this->log('Current stock items: '.count($currentStock));
-        $this->log('Previous stock items: '.count($previousStock));
+        // $this->log('Current stock items: '.count($currentStock));
+        // $this->log('Previous stock items: '.count($previousStock));
 
         $restockedItems = [];
         $checkedItems = 0;
@@ -198,7 +198,7 @@ class AmulStockTracker
             $checkedItems++;
             $previousItem = $previousStock[$sku];
 
-            $this->log("CHECKING: ".$currentItem['name']." | Previous: ".$previousItem['status']." | Current: ".$currentItem['status']);
+            // $this->log("CHECKING: ".$currentItem['name']." | Previous: ".$previousItem['status']." | Current: ".$currentItem['status']);
 
             // Check if status changed from out_of_stock to in_stock
             if ($previousItem['status'] === 'out_of_stock' && $currentItem['status'] === 'in_stock') {
