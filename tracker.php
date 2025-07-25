@@ -7,8 +7,8 @@
 class AmulStockTracker
 {
     private $apiUrl = 'https://shop.amul.com/api/1/entity/ms.products?fields[name]=1&fields[brand]=1&fields[categories]=1&fields[collections]=1&fields[alias]=1&fields[sku]=1&fields[price]=1&fields[compare_price]=1&fields[original_price]=1&fields[images]=1&fields[metafields]=1&fields[discounts]=1&fields[catalog_only]=1&fields[is_catalog]=1&fields[seller]=1&fields[available]=1&fields[inventory_quantity]=1&fields[net_quantity]=1&fields[num_reviews]=1&fields[avg_rating]=1&fields[inventory_low_stock_quantity]=1&fields[inventory_allow_out_of_stock]=1&fields[default_variant]=1&fields[variants]=1&fields[lp_seller_ids]=1&filters[0][field]=categories&filters[0][value][0]=protein&filters[0][operator]=in&filters[0][original]=1&facets=true&facetgroup=default_category_facet&limit=32&total=1&start=0&cdc=1m&substore=6650600024e61363e088c526';
-    private $dataFile = 'stock_data.json';
-    private $logFile = 'tracker.log';
+    private $dataFile;
+    private $logFile;
 
     // Telegram Bot Configuration - Using environment variables
     private $telegramBotToken;
@@ -16,6 +16,16 @@ class AmulStockTracker
 
     public function __construct()
     {
+        // Initialize file paths in constructor
+        $dataDir = '/home/' . get_current_user() . '/stock-tracker-data';
+        $this->dataFile = $dataDir . '/stock_data.json';
+        $this->logFile = $dataDir . '/tracker.log';
+
+        // Ensure the directory exists
+        if (!is_dir($dataDir)) {
+            mkdir($dataDir, 0755, true);
+        }
+
         // Get credentials from environment variables (GitHub Secrets)
         $this->telegramBotToken = getenv('TELEGRAM_BOT_TOKEN') ?: '';
         $this->telegramChatId = getenv('TELEGRAM_CHAT_ID') ?: '';
