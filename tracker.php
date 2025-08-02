@@ -105,7 +105,7 @@ class AmulStockTracker
 
     private function setPincode($pincode = '700049'): string
     {
-        $pincodeUrl = "<https://shop.amul.com/entity/pincode?limit=50&filters>[0][field]=pincode&filters[0][value]={$pincode}&filters[0][operator]=regex&cf_cache=1h";
+        $pincodeUrl = "https://shop.amul.com/entity/pincode?limit=50&filters[0][field]=pincode&filters[0][value]={$pincode}&filters[0][operator]=regex&cf_cache=1h";
 
         $context = stream_context_create([
             'http' => [
