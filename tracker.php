@@ -7,12 +7,28 @@
 class AmulStockTracker
 {
     private $apiUrl = 'https://shop.amul.com/api/1/entity/ms.products?fields[name]=1&fields[brand]=1&fields[categories]=1&fields[collections]=1&fields[alias]=1&fields[sku]=1&fields[price]=1&fields[compare_price]=1&fields[original_price]=1&fields[images]=1&fields[metafields]=1&fields[discounts]=1&fields[catalog_only]=1&fields[is_catalog]=1&fields[seller]=1&fields[available]=1&fields[inventory_quantity]=1&fields[net_quantity]=1&fields[num_reviews]=1&fields[avg_rating]=1&fields[inventory_low_stock_quantity]=1&fields[inventory_allow_out_of_stock]=1&fields[default_variant]=1&fields[variants]=1&fields[lp_seller_ids]=1&filters[0][field]=categories&filters[0][value][0]=protein&filters[0][operator]=in&filters[0][original]=1&facets=true&facetgroup=default_category_facet&limit=32&total=1&start=0&cdc=1m&substore=6650600024e61363e088c526';
+    // private $apiUrl0 = 'https://shop.amul.com/api/1/entity/ms.products?fields[name]=1&fields[brand]=1&fields[categories]=1&fields[collections]=1&fields[alias]=1&fields[sku]=1&fields[price]=1&fields[compare_price]=1&fields[original_price]=1&fields[images]=1&fields[metafields]=1&fields[discounts]=1&fields[catalog_only]=1&fields[is_catalog]=1&fields[seller]=1&fields[available]=1&fields[inventory_quantity]=1&fields[net_quantity]=1&fields[num_reviews]=1&fields[avg_rating]=1&fields[inventory_low_stock_quantity]=1&fields[inventory_allow_out_of_stock]=1&fields[default_variant]=1&fields[variants]=1&fields[lp_seller_ids]=1&filters[0][field]=categories&filters[0][value][0]=protein&filters[0][operator]=in&filters[0][original]=1&facets=true&facetgroup=default_category_facet&limit=24&total=1&start=0';
+    // private $apiUrl1 = 'https://shop.amul.com/api/1/entity/ms.products?fields[name]=1&fields[brand]=1&fields[categories]=1&fields[collections]=1&fields[alias]=1&fields[sku]=1&fields[price]=1&fields[compare_price]=1&fields[original_price]=1&fields[images]=1&fields[metafields]=1&fields[discounts]=1&fields[catalog_only]=1&fields[is_catalog]=1&fields[seller]=1&fields[available]=1&fields[inventory_quantity]=1&fields[net_quantity]=1&fields[num_reviews]=1&fields[avg_rating]=1&fields[inventory_low_stock_quantity]=1&fields[inventory_allow_out_of_stock]=1&fields[default_variant]=1&fields[variants]=1&fields[lp_seller_ids]=1&filters[0][field]=categories&filters[0][value][0]=protein&filters[0][operator]=in&filters[0][original]=1&facets=true&facetgroup=default_category_facet&limit=32&total=1&start=0';
+    // private $apiUrl11 = 'https://shop.amul.com/api/1/entity/ms.products?fields[name]=1&fields[brand]=1&fields[categories]=1&fields[collections]=1&fields[alias]=1&fields[sku]=1&fields[price]=1&fields[compare_price]=1&fields[original_price]=1&fields[images]=1&fields[metafields]=1&fields[discounts]=1&fields[catalog_only]=1&fields[is_catalog]=1&fields[seller]=1&fields[available]=1&fields[inventory_quantity]=1&fields[net_quantity]=1&fields[num_reviews]=1&fields[avg_rating]=1&fields[inventory_low_stock_quantity]=1&fields[inventory_allow_out_of_stock]=1&fields[default_variant]=1&fields[variants]=1&fields[lp_seller_ids]=1&filters[0][field]=categories&filters[0][value][0]=protein&filters[0][operator]=in&filters[0][original]=1&facets=true&facetgroup=default_category_facet&limit=24&total=1&start=0';
+    // //Pin code
+    // private $apiUrl111 = 'https://shop.amul.com/entity/pincode?limit=50&filters[0][field]=pincode&filters[0][value]=700049&filters[0][operator]=regex&cf_cache=1h';
+    // private $apiUrl2 = 'https://shop.amul.com/api/1/entity/ms.products?fields[name]=1&fields[brand]=1&fields[categories]=1&fields[collections]=1&fields[alias]=1&fields[sku]=1&fields[price]=1&fields[compare_price]=1&fields[original_price]=1&fields[images]=1&fields[metafields]=1&fields[discounts]=1&fields[catalog_only]=1&fields[is_catalog]=1&fields[seller]=1&fields[available]=1&fields[inventory_quantity]=1&fields[net_quantity]=1&fields[num_reviews]=1&fields[avg_rating]=1&fields[inventory_low_stock_quantity]=1&fields[inventory_allow_out_of_stock]=1&fields[default_variant]=1&fields[variants]=1&fields[lp_seller_ids]=1&filters[0][field]=categories&filters[0][value][0]=protein&filters[0][operator]=in&filters[0][original]=1&facets=true&facetgroup=default_category_facet&limit=24&total=1&start=0';
+    // private $apiUr5 = 'https://shop.amul.com/api/1/entity/ms.products?fields[name]=1&fields[brand]=1&fields[categories]=1&fields[collections]=1&fields[alias]=1&fields[sku]=1&fields[price]=1&fields[compare_price]=1&fields[original_price]=1&fields[images]=1&fields[metafields]=1&fields[discounts]=1&fields[catalog_only]=1&fields[is_catalog]=1&fields[seller]=1&fields[available]=1&fields[inventory_quantity]=1&fields[net_quantity]=1&fields[num_reviews]=1&fields[avg_rating]=1&fields[inventory_low_stock_quantity]=1&fields[inventory_allow_out_of_stock]=1&fields[default_variant]=1&fields[variants]=1&fields[lp_seller_ids]=1&filters[0][field]=categories&filters[0][value][0]=protein&filters[0][operator]=in&filters[0][original]=1&facets=true&facetgroup=default_category_facet&limit=32&total=1&start=0';
+    // private $apiUr55 = 'https://shop.amul.com/api/1/entity/ms.products?fields[name]=1&fields[brand]=1&fields[categories]=1&fields[collections]=1&fields[alias]=1&fields[sku]=1&fields[price]=1&fields[compare_price]=1&fields[original_price]=1&fields[images]=1&fields[metafields]=1&fields[discounts]=1&fields[catalog_only]=1&fields[is_catalog]=1&fields[seller]=1&fields[available]=1&fields[inventory_quantity]=1&fields[net_quantity]=1&fields[num_reviews]=1&fields[avg_rating]=1&fields[inventory_low_stock_quantity]=1&fields[inventory_allow_out_of_stock]=1&fields[default_variant]=1&fields[variants]=1&fields[lp_seller_ids]=1&filters[0][field]=categories&filters[0][value][0]=protein&filters[0][operator]=in&filters[0][original]=1&facets=true&facetgroup=default_category_facet&limit=32&total=1&start=0';
+    // private $productsListForNotification = [
+    //
+    // ];
     private $dataFile;
     private $logFile;
 
     // Telegram Bot Configuration - Using environment variables
     private $telegramBotToken;
     private $telegramChatId;
+    private $pincode = '700049';
+
+    private $mainPageUrl = "https://shop.amul.com/en/browse/protein";
+
+    private $cookieJar;
 
     public function __construct()
     {
@@ -22,8 +38,8 @@ class AmulStockTracker
         $this->logFile = $dataDir . '/tracker.log';
 
         // Ensure the directory exists
-        if (!is_dir($dataDir)) {
-            mkdir($dataDir, 0755, true);
+        if (!is_dir($dataDir) && !mkdir($dataDir, 0755, true) && !is_dir($dataDir)) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $dataDir));
         }
 
         // Get credentials from environment variables (GitHub Secrets)
@@ -38,8 +54,8 @@ class AmulStockTracker
             $this->log($this->dataFile.' exists, will be loaded');
         }
 
-        // GitHub Actions doesn't need complex log rotation. 
-        // We'll keep it simple since artifacts are managed automatically
+        // Initialize cookie jar
+        $this->cookieJar = $dataDir . '/cookies.txt';
     }
 
     /**
@@ -54,13 +70,77 @@ class AmulStockTracker
         file_put_contents($this->logFile, $logMessage, FILE_APPEND | LOCK_EX);
     }
 
+    private function fetchWithCookies($url, $postData = null) {
+        $ch = curl_init();
+
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_USERAGENT => 'Mozilla/5.0 (Linux; GitHub Actions) Stock Tracker/1.0',
+            CURLOPT_COOKIEJAR => $this->cookieJar,
+            CURLOPT_COOKIEFILE => $this->cookieJar,
+            CURLOPT_HTTPHEADER => [
+                'Accept: application/json',
+                'Accept-Language: en-US,en;q=0.9',
+                'Cache-Control: no-cache'
+            ]
+        ]);
+
+        if ($postData) {
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        }
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($response === false || $httpCode !== 200) {
+            throw new Exception("HTTP request failed with code: {$httpCode}");
+        }
+
+        return $response;
+    }
+
+    private function setPincode($pincode = '700049'): string
+    {
+        $pincodeUrl = "<https://shop.amul.com/entity/pincode?limit=50&filters>[0][field]=pincode&filters[0][value]={$pincode}&filters[0][operator]=regex&cf_cache=1h";
+
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'GET',
+                'timeout' => 30,
+                'user_agent' => 'Mozilla/5.0 (Linux; GitHub Actions) Stock Tracker/1.0',
+                'header' => [
+                    'Accept: application/json',
+                    'Accept-Language: en-US,en;q=0.9'
+                ]
+            ]
+        ]);
+
+        $response = @file_get_contents($pincodeUrl, false, $context);
+        if ($response === false) {
+            throw new Exception("Failed to set pincode");
+        }
+
+        $this->log("Pincode {$pincode} set successfully");
+        return $response;
+    }
+
+
     /**
      * Main execution method
      */
     public function run()
     {
         $this->log("Starting stock check...");
-        $this->log("Running in GitHub Actions environment");
+
+        // Clean up old cookies periodically
+        if (file_exists($this->cookieJar) && time() - filemtime($this->cookieJar) > 86400) {
+            unlink($this->cookieJar);
+            $this->log("Cleaned up old cookies");
+        }
 
         // Verify Telegram setup
         // $this->verifyTelegramSetup();
@@ -121,6 +201,23 @@ class AmulStockTracker
     private function fetchStockData()
     {
         $this->log("Fetching data from API...");
+
+        $this->log("Setting pincode first...");
+
+        // Step 1: Set pincode to establish session
+        $this->setPincode($this->pincode);
+
+        // Step 2: Fetch the main page to establish session
+        $this->fetchWithCookies($this->mainPageUrl);
+
+        $this->log("Fetching data from API with established session...");
+
+        // Step 3: Now fetch the API data
+        $response = $this->fetchWithCookies($this->apiUrl);
+
+        if ($response === false) {
+            throw new \RuntimeException("Failed to fetch API data");
+        }
 
         $context = stream_context_create([
             'http' => [
