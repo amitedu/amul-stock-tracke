@@ -16,8 +16,8 @@ class AmulStockTracker {
     private $logRetentionDays = 2;    // Days to keep logs
 
     // Telegram Bot Configuration
-    private $telegramBotToken = '7784897142:AAEdmidcV7MJyX7SrVlv3-n2pOGEx5oaWK0'; // Replace it with your bot token
-    private $telegramChatId = '6670557811';     // Replace it with your chat ID
+    private $telegramBotToken = ''; // Replace it with your bot token
+    private $telegramChatId = '';     // Replace it with your chat ID
 
     public function __construct() {
         // Ensure data file exists
