@@ -8,7 +8,6 @@ class AmulStockTracker
 {
     private string $pincode = '700049';
     private string $westBengalSubstoreId = '6650600024e61363e088c526'; // Hardcoded West Bengal substore ID
-    private string $dataDir = __DIR__.'/stock-tracker-data';
     private string $cookieJar;
     private string $tid = '';
     private string $mainPageUrl = 'https://shop.amul.com/en/browse/protein';
@@ -27,14 +26,18 @@ class AmulStockTracker
 
     public function __construct()
     {
-        $this->dataFile = $this->dataDir.'/stock_data.json';
+        // Initialize file paths in constructor
+        $dataDir = '/home/' . get_current_user() . '/stock-tracker-data';
+        $this->dataFile = $dataDir . '/stock_data.json';
+        $this->logFile = $dataDir . '/tracker.log';
+
 
         // Ensure the directory exists
-        if (!is_dir($this->dataDir) && !mkdir($this->dataDir, 0755, true) && !is_dir($this->dataDir)) {
-            throw new \RuntimeException(sprintf('Directory "%s" was not created', $this->dataDir));
+        if (!is_dir($dataDir) && !mkdir($dataDir, 0755, true) && !is_dir($dataDir)) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $dataDir));
         }
 
-        $this->cookieJar = $this->dataDir.'/cookies.txt';
+        $this->cookieJar = $dataDir.'/cookies.txt';
 
         // Get credentials from environment variables (GitHub Secrets)
         $this->telegramBotToken = getenv('TELEGRAM_BOT_TOKEN') ?: '';
@@ -56,8 +59,9 @@ class AmulStockTracker
     {
         $timestamp = date('Y-m-d H:i:s');
         $logMessage = "[$timestamp] $message\n";
-        echo $logMessage;
-        file_put_contents($this->dataDir.'/tracker.log', $logMessage, FILE_APPEND | LOCK_EX);
+
+        echo $logMessage; // For GitHub Actions console output
+        file_put_contents($this->logFile, $logMessage, FILE_APPEND | LOCK_EX);
     }
 
     /**
@@ -108,7 +112,7 @@ class AmulStockTracker
             exit(1);
         }
 
-        $this->log("Stock check completed.");
+        $this->log("Stock check completed."."\n\n");
     }
 
     // Step 1: Fetch the main page to get initial cookies/session
